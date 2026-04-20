@@ -44,7 +44,7 @@ jobs:
           run: echo "LEDFX_VERSION=$(grep 'ledfx==' requirements.txt | cut -d'=' -f3)" >> $GITHUB_OUTPUT
 
         - name: Create Release
-          uses: softprops/action-gh-release@v1
+          uses: softprops/action-gh-release@v3
           with:
             tag_name: v${{ steps.version.outputs.LEDFX_VERSION }}
             name: Release v${{ steps.version.outputs.LEDFX_VERSION }}
