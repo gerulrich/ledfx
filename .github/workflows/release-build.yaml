@@ -1,0 +1,56 @@
+name: Build ledfx and push to docker hub
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+    create-release:
+      name: Create GitHub Release
+      runs-on: ubuntu-latest
+      permissions:
+        contents: write
+      outputs:
+        version: ${{ steps.version.outputs.LEDFX_VERSION }}
+      steps:
+        - uses: actions/checkout@v2
+
+        - name: Extract ledfx version from requirements.txt
+          id: version
+          run: echo "LEDFX_VERSION=$(grep 'ledfx==' requirements.txt | cut -d'=' -f3)" >> $GITHUB_OUTPUT
+
+        - name: Create Release
+          uses: softprops/action-gh-release@v1
+          with:
+            tag_name: v${{ steps.version.outputs.LEDFX_VERSION }}
+            name: Release v${{ steps.version.outputs.LEDFX_VERSION }}
+            generate_release_notes: true
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    build:
+      name: push docker image to docker hub
+      needs: create-release
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v1
+
+        - name: Log in to Docker Hub
+          uses: docker/login-action@v1
+          with:
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+        - name: Build and push Docker image
+          uses: docker/build-push-action@v2
+          with:
+            context: .
+            file: ./Dockerfile
+            push: true
+            tags: |
+              gerulrich/ledfx:${{ needs.create-release.outputs.version }}
+              gerulrich/ledfx:latest
+            platforms: linux/amd64,linux/arm64

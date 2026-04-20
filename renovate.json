@@ -1,0 +1,17 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base"
+  ],
+  "timezone": "America/Argentina/Buenos_Aires",
+  "schedule": [
+    "0 20-22 * * *"
+  ],
+  "stabilityDays": 1,
+  "automerge": true,
+  "automergeType": "pr",
+  "automergeStrategy": "auto",
+  "requiredStatusChecks": [
+    "build"
+  ]
+}
