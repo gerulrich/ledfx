@@ -3,10 +3,34 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'Dockerfile'
+      - 'requirements.txt'
+      - 'startup.sh'
 
 jobs:
+    check-changes:
+      name: Check for relevant changes
+      runs-on: ubuntu-latest
+      outputs:
+        should_build: ${{ steps.check.outputs.should_build }}
+      steps:
+        - uses: actions/checkout@v2
+          with:
+            fetch-depth: 2
+
+        - name: Check if Dockerfile or requirements.txt changed
+          id: check
+          run: |
+            if git diff --name-only HEAD~1 HEAD | grep -qE '(Dockerfile|requirements.txt|startup.sh)'; then
+              echo "should_build=true" >> $GITHUB_OUTPUT
+            else
+              echo "should_build=false" >> $GITHUB_OUTPUT
+            fi
     create-release:
       name: Create GitHub Release
+      needs: check-changes
+      if: needs.check-changes.outputs.should_build == 'true'
       runs-on: ubuntu-latest
       permissions:
         contents: write
@@ -31,6 +55,7 @@ jobs:
     build:
       name: push docker image to docker hub
       needs: create-release
+      if: success()
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v2
