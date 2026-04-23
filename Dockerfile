@@ -18,7 +18,7 @@ RUN pip install numpy wheel
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-FROM python:3.12-slim-bookworm AS final
+FROM python:3.14-slim-bookworm AS final
 WORKDIR /app
 
 RUN apt-get update && \
